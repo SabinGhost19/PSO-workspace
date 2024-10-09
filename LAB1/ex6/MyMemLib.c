@@ -2,10 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
+#include <unistd.h>
+#include<string.h>
 
 void * malloc(size_t size){
 
     static void *(*real_malloc)(size_t)=NULL;
+    char*buffer=NULL;
     if(!real_malloc){
         real_malloc = dlsym(RTLD_NEXT, "malloc");
         if (!real_malloc) {
@@ -13,15 +16,17 @@ void * malloc(size_t size){
             exit(1);
         }
     }
+
     void*p=real_malloc(size);
-    printf("S-au alocat %zu octeti,la adresa de memorie %p",size,p);
-    
+    int bytes=sprintf(buffer,"S-au alocat %zu octeti,la adresa de memorie %p",size,p);
+    write(1, buffer, bytes);
     return p;
 }
 
 void free(void*ptr){
 
     static void (*real_free)(void *)=NULL;
+    char*buffer=NULL;
 
     if(!real_free){
         real_free=dlsym(RTLD_NEXT,"free");
@@ -31,5 +36,6 @@ void free(void*ptr){
         }
     }
     real_free(ptr);
-    printf("free memory at address %p\n", ptr);
+    int bytes=sprintf(buffer,"free memory at address %p\n", ptr);
+    write(1, buffer, bytes);
 }
