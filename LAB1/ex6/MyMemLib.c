@@ -12,7 +12,7 @@ void * malloc(size_t size){
     if(!real_malloc){
         real_malloc = dlsym(RTLD_NEXT, "malloc");
         if (!real_malloc) {
-            printf("Error in `dlsym`: %s\n", dlerror());
+            fprintf(stderr,"Error in `dlsym`: %s\n", dlerror());
             exit(1);
         }
     }
@@ -31,7 +31,8 @@ void free(void*ptr){
     if(!real_free){
         real_free=dlsym(RTLD_NEXT,"free");
         if (!real_free) {
-            printf("Error in `dlsym`: %s\n", dlerror());
+            fprintf(stderr,"Error in `dlsym`: %s\n", dlerror());
+
             exit(1);
         }
     }
