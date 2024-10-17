@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h> /* errno */
-
 #define LOCK_FILE "/tmp/my_lock_file"
 
 static int fdlock = -1;
@@ -22,6 +21,13 @@ static void check_lock(void)
 
 	/* TODO - Open LOCK_FILE file */
 	/* fdlock = open(...) */
+	fdlock = open(LOCK_FILE, O_CREAT | O_EXCL | O_WRONLY, 0666);
+
+	if (flock(fdlock, LOCK_EX) < 0)
+	{
+		perror("there is another instance running");
+		exit(EXIT_FAILURE);
+	}
 
 	/**
 	 * TODO - Lock the file using flock
@@ -37,6 +43,9 @@ static void check_lock(void)
 static void clean_up(void)
 {
 	int rc;
+	flock(fdlock, LOCK_UN);
+	close(fdlock);
+	unlink(LOCK_FILE);
 	/* TODO - Unlock file, close file and delete it */
 }
 
