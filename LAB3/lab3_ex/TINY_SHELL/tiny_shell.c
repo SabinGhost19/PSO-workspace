@@ -82,7 +82,7 @@ void replace_env_variables_in_args(char *args[])
         i++;
     }
 }
-void execution(char *command, char *args[])
+void normal_execution(char *command, char *args[])
 {
     int status;
     pid_t pid = fork();
@@ -272,6 +272,51 @@ void parse_pipes_commands(char *line)
         procs_communicate(comm, args, comm2, args2);
     }
 }
+void redirect_output(char *line)
+{
+    char *args[10];
+    char *first_command = trim(strtok(line, ">"));
+    char *file_to_write_in = trim(strtok(NULL, ">"));
+
+    char *commnd = parse_command(first_command, args);
+
+    pid_t file_pid = open(file_to_write_in, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (file_pid < 0)
+    {
+        perror("Error in opening/creating the file");
+        exit(EXIT_FAILURE);
+    }
+
+    pid_t fork_pid = fork();
+    switch (fork_pid)
+    {
+    case 0:
+        // child
+        replace_env_variables_in_args(args);
+
+        dup2(file_pid, STDOUT_FILENO);
+
+        if (execvp(commnd, args) == -1)
+        {
+            perror("error laungh pipe cmmd");
+            exit(EXIT_FAILURE);
+        }
+        break;
+
+    case -1:
+        perror("Error forking second process");
+        exit(EXIT_FAILURE);
+    default:
+        // parent
+        wait(NULL);
+        if (close(file_pid) < 0)
+        {
+            perror("closing the file failed...");
+            exit(EXIT_FAILURE);
+        }
+        break;
+    }
+}
 int main(int argc, char *argv[], char *envp[])
 {
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -300,6 +345,13 @@ int main(int argc, char *argv[], char *envp[])
             continue;
         }
 
+        if (strchr(line, '>') != NULL)
+        {
+            redirect_output(line);
+            free(line);
+            continue;
+        }
+
         // extragere first comand
         first_command = parse_command(line, args);
 
@@ -310,7 +362,7 @@ int main(int argc, char *argv[], char *envp[])
         }
 
         // exec
-        execution(first_command, args);
+        normal_execution(first_command, args);
 
         free(line);
     }
