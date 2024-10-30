@@ -5,7 +5,8 @@
         "errno.h": "c",
         "stdio.h": "c",
         "stddef.h": "c",
-        "stat.h": "c"
+        "stat.h": "c",
+        "cstdlib": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

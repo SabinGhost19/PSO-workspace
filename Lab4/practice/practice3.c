@@ -30,8 +30,9 @@ int main()
     sigaction(SIGINT, &sa, NULL);
 
     sa.sa_handler = sigQuit_handle;
-    // initializare masca de semnale cu 0
-    sigemptyset(&set);
+    sigaction(SI_MESGQ)
+        // initializare masca de semnale cu 0
+        sigemptyset(&set);
     sigaddset(&set, SIGINT);
 
     while (1)

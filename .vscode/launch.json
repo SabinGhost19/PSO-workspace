@@ -8,7 +8,7 @@
             "name": "Debug fork",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/LAB3/lab3_ex/TINY_SHELL/tiny_shell",
+            "program": "${workspaceFolder}/EXTRA_exercises/PROCESSES/ex3",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

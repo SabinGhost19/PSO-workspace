@@ -21,17 +21,40 @@ void initialize_named_pipe()
         exit(-1);
     }
 }
+void sig_usr_handle()
+{
+    printf("Sig usr received in the parrent proc\n");
 
+    int fd = open(PIPE_NAME, O_WRONLY);
+    if (fd < 0)
+    {
+        perror("Error at opening named pipe for writing");
+        exit(EXIT_FAILURE);
+    }
+
+    char *buffer = "000000000000";
+
+    ssize_t write_bytes = write(fd, buffer, strlen(buffer));
+    if (write_bytes < 0)
+    {
+        perror("Error at writing into named pipe");
+        exit(EXIT_FAILURE);
+    }
+
+    close(fd);
+}
 int main()
 {
+    int children_pid_vector[10];
+
     int nr_of_child_procceses;
     printf("Introdu numarul de procese: ");
     scanf("%d", &nr_of_child_procceses);
 
-    struct sigaction sa;
-    memset(&sa, 0, sizeof(sa));
-
     initialize_named_pipe();
+    printf("Waiting for signal: %ld", (long)getpid());
+    fflush(stdout); //  golirea bufferului
+    // nu imi afisa
 
     pid_t Child_pid = 0;
     for (int i = 0; i < nr_of_child_procceses; i++)
@@ -72,30 +95,30 @@ int main()
 
         default:
         {
-
-            int fd = open(PIPE_NAME, O_WRONLY);
-            if (fd < 0)
-            {
-                perror("Error at opening named pipe for writing");
-                exit(EXIT_FAILURE);
-            }
-
-            char *buffer = "0000";
-
-            ssize_t write_bytes = write(fd, buffer, strlen(buffer));
-            if (write_bytes < 0)
-            {
-                perror("Error at writing into named pipe");
-                exit(EXIT_FAILURE);
-            }
-
-            close(fd);
-
-            wait(NULL);
+            // memorare pid copil
+            children_pid_vector[i] = Child_pid;
         }
         }
     }
 
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = sig_usr_handle;
+
+    // asignare sigaction(handler deocamdata) semnalului
+    sigaction(SIGUSR1, &sa, NULL);
+    printf("Waiting for signal: %ld", (long)getpid());
+
+    // asteptam semnalul
+    pause();
+
+    wait(NULL);
+
+    // for (int i = 0; i < nr_of_child_procceses; i++)
+    // {
+    //     wait(NULL);
+    //     waitpid(children_pid_vector[i], NULL, 0);
+    // }
     unlink(PIPE_NAME);
 
     return 0;
