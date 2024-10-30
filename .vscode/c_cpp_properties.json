@@ -3,11 +3,14 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "/usr/include",              // Include standard pentru fișiere de header
+                "/usr/local/include",         // Include adițional pentru librării locale
+                "/usr/include/linux"         // Include pentru structuri și definiții Linux specifice
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
-            "cStandard": "c17",
+            "cStandard": "gnu11",             // Utilizează standardul GNU pentru compatibilitate extinsă POSIX
             "cppStandard": "gnu++17",
             "intelliSenseMode": "linux-gcc-x64"
         }
