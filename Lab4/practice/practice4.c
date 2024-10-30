@@ -28,15 +28,16 @@ void handle_SIGINT(int sig_nr)
 int main()
 {
 
-    struct sigaction sa2;
+    // struct sigaction sa2;
 
-    sa2.sa_handler = handle_SIGINT;
-    sa2.sa_flags = SA_RESETHAND;
-    sigaction(SIGINT, &sa2, NULL);
+    // sa2.sa_handler = handle_SIGINT;
+    // sa2.sa_flags = SA_RESETHAND;
+    // sigaction(SIGINT, &sa2, NULL);
 
     sigset_t sig_set;
     sigemptyset(&sig_set);
-    sigaddset(&sig_set, SIGUSR2);
+    sigaddset(&sig_set, SIGINT);
+    sigprocmask(SIG_BLOCK, &sig_set, NULL);
     // INIT SIG_SET
 
     struct sigaction sa;
