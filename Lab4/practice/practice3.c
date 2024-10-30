@@ -12,6 +12,7 @@ void sigInt_handle(int signal_number)
 void sigQuit_handle(int signal_number)
 {
     printf("Semnalul sigQQQQQUIT!!!....\n");
+    exit(1);
 }
 
 int main()
@@ -30,21 +31,23 @@ int main()
     sigaction(SIGINT, &sa, NULL);
 
     sa.sa_handler = sigQuit_handle;
-    sigaction(SI_MESGQ)
-        // initializare masca de semnale cu 0
-        sigemptyset(&set);
-    sigaddset(&set, SIGINT);
+    sigaction(SIGQUIT, &sa, NULL);
 
+    // initializare masca de semnale cu 0
+    sigemptyset(&set);
+    sigaddset(&set, SIGQUIT);
+
+    printf("Process started with PID: %d\n", getpid());
     while (1)
     {
         // blocare
         sigprocmask(SIG_BLOCK, &set, NULL);
         // blocheaza toate semnalele din set
-        printf("Process started with PID: %d\n", getpid());
-
+        printf("BLOCKED..............\n");
         printf("Sleep....5s\n");
-        printf("DONE SLEEP..............\n");
+        sleep(5);
 
+        printf("UNBLOCKED..............\n");
         sigprocmask(SIG_UNBLOCK, &set, NULL);
         sleep(5);
     }
