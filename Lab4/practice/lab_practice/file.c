@@ -35,6 +35,11 @@ int main()
 
         // sleep(3);
         printf("Child pid: %ld", (long)getpid());
+        // transmitere si la parinte
+        // se mosteneste si struct sigactionn de la parinte la copil
+        // asa ca si parintele si copilul vor avea aceasi structura
+        //  other words....acelasi handler pentru SIGUSR1
+        kill(getppid(), SIGUSR1);
 
         exit(0);
     }
