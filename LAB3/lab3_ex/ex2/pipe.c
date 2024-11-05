@@ -85,6 +85,8 @@ static void parent_loop(int writefd)
 int main(void)
 {
 	pid_t pid;
+	STDIN_FILE
+
 	int rc;
 	int pipe_fds[2];
 

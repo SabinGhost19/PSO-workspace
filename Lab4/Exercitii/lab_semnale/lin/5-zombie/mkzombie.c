@@ -13,10 +13,10 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+#include <errno.h>
 #include "utils.h"
 
-#define TIMEOUT		20
+#define TIMEOUT 20
 
 int main(void)
 {
@@ -25,6 +25,26 @@ int main(void)
 	/* TODO - create child process without waiting */
 
 	/* TODO - sleep */
+	switch (pid = fork())
+	{
+	case -1:
+	{
+		perror("Fork error");
+		exit(EXIT_FAILURE);
+	}
+	case 0:
+	{
+		// child
+		printf("Child proc\n");
+		printf("PID: %ld", (long)getpid());
+		exit(0);
+	}
+	default:
+	{
+		// parent
+		sleep(TIMEOUT);
+	}
+	}
 
 	return 0;
 }
