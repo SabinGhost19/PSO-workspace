@@ -9,6 +9,9 @@ typedef struct planner
     unsigned int nr_of_event;
     // cuanta de timp dupa care un procc trebuie preemptat
     unsigned int time_quantum;
+    // current thread
+    tid_t current_thread_in_execution;
+
 } _scheduler;
 
 typedef struct thread_task
@@ -27,7 +30,7 @@ void functie_rutina_thread__1_(unsigned int priority)
 {
     printf("Aceasta este o rutina ce trebuie executata...priority: %d\n", priority);
     tid_t tid = so_fork(functie_rutina_thread__2_, 2);
-    sleep(1);
+    sleep(10);
     printf("Forking new thread....thread 2 is generated and executing..\n");
     // waiting for thread 2 to finish its exevcution;
     pthread_join(tid, NULL);
