@@ -19,7 +19,6 @@ void *routine()
 
 int main()
 {
-
     pthread_t thread_1;
     pthread_t thread_2;
     pthread_mutex_init(&mutex, NULL);

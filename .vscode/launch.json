@@ -8,7 +8,7 @@
       "name": "Debug fork",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/Lab4/practice_code_vvvv/l5",
+      "program": "${workspaceFolder}/Lab7_threads/practice/PLANNER/planner",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${fileDirname}",

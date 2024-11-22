@@ -1,13 +1,14 @@
 {
-    "files.associations": {
-        "wait.h": "c",
-        "signal.h": "c",
-        "errno.h": "c",
-        "stdio.h": "c",
-        "stddef.h": "c",
-        "stat.h": "c",
-        "cstdlib": "c",
-        "stdlib.h": "c"
-    },
-    "C_Cpp.errorSquiggles": "disabled"
+  "files.associations": {
+    "wait.h": "c",
+    "signal.h": "c",
+    "errno.h": "c",
+    "stdio.h": "c",
+    "stddef.h": "c",
+    "stat.h": "c",
+    "cstdlib": "c",
+    "stdlib.h": "c",
+    "unistd.h": "c"
+  },
+  "C_Cpp.errorSquiggles": "disabled"
 }
