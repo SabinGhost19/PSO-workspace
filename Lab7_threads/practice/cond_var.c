@@ -9,6 +9,7 @@ typedef struct ARG
     int integer;
     char string[10];
 } ARG;
+
 pthread_cond_t variabila_conditie;
 pthread_mutex_t mutex;
 
@@ -57,7 +58,6 @@ pthread_t *create_new_thread_2(char *name, int nr)
 }
 int main()
 {
-
     pthread_cond_init(&variabila_conditie, NULL);
     pthread_mutex_init(&mutex, NULL);
 
