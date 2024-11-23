@@ -8,7 +8,7 @@
       "name": "Debug fork",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/Lab7_threads/practice/PLANNER/planner",
+      "program": "${workspaceFolder}/Lab7_threads/practice//barier",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${fileDirname}",

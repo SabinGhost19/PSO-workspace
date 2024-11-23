@@ -35,6 +35,7 @@ void *routine__seller(void *args)
         pthread_mutex_unlock(&mutex);
         sleep(1);
     }
+    free(arg);
     return NULL;
 }
 
@@ -58,6 +59,7 @@ void *routine__producer(void *args)
         pthread_mutex_unlock(&mutex);
         sleep(2);
     }
+    free(arg);
     return NULL;
 }
 pthread_t fork_new_thread___producer__(int interger, char *string)
