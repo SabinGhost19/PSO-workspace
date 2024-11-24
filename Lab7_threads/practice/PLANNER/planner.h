@@ -43,53 +43,54 @@ typedef DWORD tid_t;
 #define INVALID_TID ((tid_t)0)
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/*
- * handler prototype
- */
-typedef void (so_handler)(unsigned int);
+    /*
+     * handler prototype
+     */
+    typedef void(so_handler)(unsigned int);
 
-/*
- * creates and initializes scheduler
- * + time quantum for each thread
- * + number of IO devices supported
- * returns: 0 on success or negative on error
- */
-DECL_PREFIX int so_init(unsigned int time_quantum, unsigned int io);
+    /*
+     * creates and initializes scheduler
+     * + time quantum for each thread
+     * + number of IO devices supported
+     * returns: 0 on success or negative on error
+     */
+    DECL_PREFIX int so_init(unsigned int time_quantum, unsigned int io);
 
-/*
- * creates a new so_task_t and runs it according to the scheduler
- * + handler function
- * + priority
- * returns: tid of the new task if successful or INVALID_TID
- */
-DECL_PREFIX tid_t so_fork(so_handler *func, unsigned int priority);
+    /*
+     * creates a new so_task_t and runs it according to the scheduler
+     * + handler function
+     * + priority
+     * returns: tid of the new task if successful or INVALID_TID
+     */
+    DECL_PREFIX tid_t so_fork(so_handler *func, unsigned int priority, unsigned int time_slice);
 
-/*
- * waits for an IO device
- * + device index
- * returns: -1 if the device does not exist or 0 on success
- */
-DECL_PREFIX int so_wait(unsigned int io);
+    /*
+     * waits for an IO device
+     * + device index
+     * returns: -1 if the device does not exist or 0 on success
+     */
+    DECL_PREFIX int so_wait(unsigned int io);
 
-/*
- * signals an IO device
- * + device index
- * return the number of tasks woke or -1 on error
- */
-DECL_PREFIX int so_signal(unsigned int io);
+    /*
+     * signals an IO device
+     * + device index
+     * return the number of tasks woke or -1 on error
+     */
+    DECL_PREFIX int so_signal(unsigned int io);
 
-/*
- * does whatever operation
- */
-DECL_PREFIX void so_exec(void);
+    /*
+     * does whatever operation
+     */
+    DECL_PREFIX void so_exec(void);
 
-/*
- * destroys a scheduler
- */
-DECL_PREFIX void so_end(void);
+    /*
+     * destroys a scheduler
+     */
+    DECL_PREFIX void so_end(void);
 
 #ifdef __cplusplus
 }
