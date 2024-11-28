@@ -19,15 +19,17 @@
 
 #include "utils.h"
 
-#define MIN(a, b)	((a) < (b) ? (a) : (b))
-#define NUM_THREADS	4
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define NUM_THREADS 4
 
-struct file_mapping {
+struct file_mapping
+{
 	char *mem;
 	size_t size;
 };
 
-struct params {
+struct params
+{
 	char *chunk_mem;
 	size_t chunk_size;
 };
@@ -52,23 +54,25 @@ static void map_file(const char *filename, struct file_mapping *fmap)
 	fmap->size = statbuf.st_size;
 
 	fmap->mem = mmap(0, fmap->size, PROT_READ | PROT_WRITE,
-		MAP_PRIVATE, fd, 0);
+					 MAP_PRIVATE, fd, 0);
 	DIE(fmap->mem == MAP_FAILED, "mmap");
 
 	close(fd);
 }
 
 static size_t count(char *what, const size_t what_size,
-			char *where, const size_t where_size)
+					char *where, const size_t where_size)
 {
 	unsigned int i = 0;
 	unsigned int total = 0;
 
 	while (i < where_size - what_size + 1)
-		if (memcmp(where + i, what, what_size) == 0) {
+		if (memcmp(where + i, what, what_size) == 0)
+		{
 			++total;
 			i += what_size;
-		} else
+		}
+		else
 			++i;
 
 	return total;
@@ -77,7 +81,7 @@ static size_t count(char *what, const size_t what_size,
 void *thread_code(void *args)
 {
 	/* get parameters from args */
-	struct params *p = (struct params *) args;
+	struct params *p = (struct params *)args;
 
 	/* how many times string appeared in this thread's chunk */
 	size_t *result = malloc(sizeof(*result));
@@ -95,7 +99,8 @@ static void split_file_mapping(struct file_mapping *fmap)
 	size_t chunk_size = (fmap->size + NUM_THREADS - 1) / NUM_THREADS;
 	int i;
 
-	for (i = 0; i < NUM_THREADS - 1; i++) {
+	for (i = 0; i < NUM_THREADS - 1; i++)
+	{
 		th_params[i].chunk_mem = fmap->mem + i * chunk_size;
 		th_params[i].chunk_size = chunk_size + string_size - 1;
 	}
@@ -117,7 +122,8 @@ int main(int argc, char **argv)
 	void *results[NUM_THREADS];
 	size_t total = 0;
 
-	if (argc != 3) {
+	if (argc != 3)
+	{
 		printf("Usage: %s <string> <file>\n", argv[0]);
 		exit(1);
 	}
@@ -133,9 +139,22 @@ int main(int argc, char **argv)
 	 *	- thread i will run 'thread_code' function
 	 *		passing th_params[i] as parameter
 	 */
+	for (int i = 0; i < NUM_THREADS; i++)
+	{
+		pthread_create(&th_id[i], NULL, &thread_code, &th_params[i]);
+	}
 
-	/* TODO - wait for threads to finish and collect results */
-
+	void *__thread_return = NULL;
+	for (int i = 0; i < NUM_THREADS; i++)
+	{
+		int rc = pthread_join(th_id[i], &__thread_return);
+		results[i] = __thread_return;
+	}
+	// /* TODO - wait for threads to finish and collect results */
+	for (int i = 0; i < NUM_THREADS; i++)
+	{
+		total += *((size_t *)results[i]);
+	}
 	/* TODO - compute final sum */
 
 	printf("total = %lu\n", total);

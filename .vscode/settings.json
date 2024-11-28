@@ -8,7 +8,8 @@
     "stat.h": "c",
     "cstdlib": "c",
     "stdlib.h": "c",
-    "unistd.h": "c"
+    "unistd.h": "c",
+    "utils.h": "c"
   },
   "C_Cpp.errorSquiggles": "disabled"
 }
