@@ -10,14 +10,15 @@
 #include <unistd.h>
 #include "utils.h"
 
-#define ONCE_INITIALIZER { PTHREAD_MUTEX_INITIALIZER, 0 }
+#define ONCE_INITIALIZER {PTHREAD_MUTEX_INITIALIZER, 0}
 
 #define NUM_THREADS 10
-#define NUM_CHARS   1000
-#define START_CHAR  '!'
-#define PERIOD      500
+#define NUM_CHARS 1000
+#define START_CHAR '!'
+#define PERIOD 500
 
-struct once_struct {            /* Our equivalent of pthread_once_t */
+struct once_struct
+{ /* Our equivalent of pthread_once_t */
 	pthread_mutex_t mutex;
 	int refcount;
 };
@@ -55,7 +56,8 @@ static void deinit_func(void)
 
 static void thread_work(int arg)
 {
-	for (int i = 0; i < NUM_CHARS; i++) {
+	for (int i = 0; i < NUM_CHARS; i++)
+	{
 		printf("%c", START_CHAR + arg);
 
 		/* What happens if you comment out the fflush ? */
@@ -73,7 +75,14 @@ static int one_time_init(struct once_struct *once_control, void (*f)(void))
 	/* TODO - Each time a thread gets here, increment once_control->refcount.
 	 * Call the f() function only if this is the first thread that got here.
 	 */
-	(*f)();
+
+	pthread_mutex_lock(&once_control->mutex);
+	once_control->refcount++;
+	if (once_control->refcount == 1)
+	{
+		(*f)();
+	}
+	pthread_mutex_unlock(&once_control->mutex);
 
 	return 0;
 }
@@ -85,7 +94,13 @@ static int one_time_deinit(struct once_struct *once_control, void (*f)(void))
 	/* TODO - Each time a thread gets here, decrement once_control->refcount.
 	 * Call the f() function only if this is the last thread that got here.
 	 */
-	(*f)();
+	pthread_mutex_lock(&once_control->mutex);
+	once_control->refcount--;
+	if (once_control->refcount == 0)
+	{
+		(*f)();
+	}
+	pthread_mutex_unlock(&once_control->mutex);
 
 	return 0;
 }
@@ -104,7 +119,7 @@ static void *thread_func(void *arg)
 	 * threads.
 	 */
 
-	thread_work((long) arg);
+	thread_work((long)arg);
 
 	/*
 	 * The following allows us to verify that even if a single thread calls
@@ -124,12 +139,14 @@ int main(void)
 
 	/* Create NUM_THREADS threads, all will call one_time_init() / one time deinit */
 
-	for (i = 0; i < NUM_THREADS; i++) {
-		rc = pthread_create(&threads[i], NULL, thread_func, (void *) i);
+	for (i = 0; i < NUM_THREADS; i++)
+	{
+		rc = pthread_create(&threads[i], NULL, thread_func, (void *)i);
 		DIE(rc != 0, "pthread_create");
 	}
 
-	for (i = 0; i < NUM_THREADS; i++) {
+	for (i = 0; i < NUM_THREADS; i++)
+	{
 		rc = pthread_join(threads[i], NULL);
 		DIE(rc != 0, "pthread_join");
 	}

@@ -10,7 +10,8 @@
 #include <pthread.h>
 #include <unistd.h>
 
-struct thd_data_t {
+struct thd_data_t
+{
 	pthread_mutex_t mutex;
 	int found;
 	int val;
@@ -21,18 +22,18 @@ struct thd_data_t {
 struct thd_data_t data_x = {
 	.mutex = PTHREAD_MUTEX_INITIALIZER,
 	.found = 0,
-	.val   = -1,
+	.val = -1,
 	.start = 10000,
-	.stop  = 20000,
+	.stop = 20000,
 };
 
 /* Thread y data */
 struct thd_data_t data_y = {
 	.mutex = PTHREAD_MUTEX_INITIALIZER,
 	.found = 0,
-	.val   = -1,
+	.val = -1,
 	.start = 20000,
-	.stop  = 30000,
+	.stop = 30000,
 };
 
 static int factorial(int n)
@@ -59,7 +60,8 @@ void *thread_routine_y(void *arg)
 	int i;
 	int finished = 0;
 
-	for (i = data_y.start; i < data_y.stop && !finished; i++) {
+	for (i = data_y.start; i < data_y.stop && !finished; i++)
+	{
 
 		/* Show progress - usefull in case threads block */
 		if (i % 100 == 0)
@@ -71,19 +73,24 @@ void *thread_routine_y(void *arg)
 		int local_found = is_super_number(i);
 
 		pthread_mutex_lock(&data_y.mutex);
-		if (local_found) {
+		if (local_found)
+		{
 			finished = 1;
 			data_y.found = 1;
 			data_y.val = i;
-		} else {
+		}
+		else
+		{
 			/* sleep to force deadlock */
-			if ((i + 1) % 5000 == 0)
-				sleep(1);
+			// if ((i + 1) % 5000 == 0)
+			// 	sleep(1);
 
+			pthread_mutex_unlock(&data_y.mutex);
 			pthread_mutex_lock(&data_x.mutex);
 			if (data_x.found)
 				finished = 1;
 			pthread_mutex_unlock(&data_x.mutex);
+			pthread_mutex_lock(&data_y.mutex);
 		}
 		pthread_mutex_unlock(&data_y.mutex);
 	}
@@ -95,7 +102,8 @@ void *thread_routine_x(void *arg)
 	int finished = 0;
 	int i;
 
-	for (i = data_x.start; i < data_x.stop && !finished; i++) {
+	for (i = data_x.start; i < data_x.stop && !finished; i++)
+	{
 		/* Show progress - usefull in case threads block */
 		if (i % 100 == 0)
 			printf("thread_X: %d\n", i);
@@ -106,15 +114,20 @@ void *thread_routine_x(void *arg)
 		int local_found = is_super_number(i);
 
 		pthread_mutex_lock(&data_x.mutex);
-		if (local_found) {
+		if (local_found)
+		{
 			finished = 1;
 			data_x.found = 1;
 			data_x.val = i;
-		} else {
+		}
+		else
+		{
+			pthread_mutex_unlock(&data_x.mutex);
 			pthread_mutex_lock(&data_y.mutex);
 			if (data_y.found)
 				finished = 1;
 			pthread_mutex_unlock(&data_y.mutex);
+			pthread_mutex_lock(&data_x.mutex);
 		}
 		pthread_mutex_unlock(&data_x.mutex);
 	}
@@ -127,8 +140,8 @@ int main(void)
 	pthread_t tid_y;
 
 	/* both threads run the 'thread_routine' */
-	pthread_create(&tid_x, NULL, thread_routine_x, (void *) 0);
-	pthread_create(&tid_y, NULL, thread_routine_y, (void *) 1);
+	pthread_create(&tid_x, NULL, thread_routine_x, (void *)0);
+	pthread_create(&tid_y, NULL, thread_routine_y, (void *)1);
 
 	/* wait for all threads to finish */
 	pthread_join(tid_y, NULL);
