@@ -14,11 +14,12 @@
 
 #include <utils.h>
 
-#define BUFFER_SIZE	3
-#define NR_ITERATIONS	10
-#define RAND_DELAY	-1
+#define BUFFER_SIZE 3
+#define NR_ITERATIONS 10
+#define RAND_DELAY -1
 
-typedef struct {
+typedef struct
+{
 	int buff[BUFFER_SIZE];
 	int count;
 } buffer_t;
@@ -56,7 +57,7 @@ int is_buffer_empty(buffer_t *b)
  */
 buffer_t common_area;
 
-pthread_cond_t buffer_not_full  = PTHREAD_COND_INITIALIZER;
+pthread_cond_t buffer_not_full = PTHREAD_COND_INITIALIZER;
 pthread_cond_t buffer_not_empty = PTHREAD_COND_INITIALIZER;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -66,9 +67,10 @@ void *producer_fn(void *arg)
 	int item_to_insert;
 	int i;
 	int rc;
-	int delay = *(int *) arg;
+	int delay = *(int *)arg;
 
-	for (i = 0; i < NR_ITERATIONS; i++) {
+	for (i = 0; i < NR_ITERATIONS; i++)
+	{
 		item_to_insert = i;
 
 		/* TODO - lock mutex */
@@ -76,7 +78,13 @@ void *producer_fn(void *arg)
 		/* TODO - if common area is full
 		 *		then wait until the common area is not full
 		 */
-
+		pthread_mutex_lock(&mutex);
+		while (is_buffer_full(&common_area))
+		{
+			pthread_cond_wait(&buffer_not_full, &mutex);
+		}
+		// insert the item
+		insert_item(&common_area, item_to_insert);
 		/* TODO - insert item into common area */
 
 		printf("Inserted item %d\n", item_to_insert);
@@ -84,8 +92,11 @@ void *producer_fn(void *arg)
 		/* TODO - if we have one element in common area
 		 *		then signal that the buffer is not empty
 		 */
-
-		/* TODO - unlock mutex */
+		if (!is_buffer_empty(&common_area)) /* TODO - unlock mutex */
+		{
+			pthread_cond_signal(&buffer_not_empty);
+		}
+		pthread_mutex_unlock(&mutex);
 
 		if (delay == RAND_DELAY)
 			sleep(rand() % 3);
@@ -101,23 +112,31 @@ void *consumer_fn(void *arg)
 	int item_consumed;
 	int i;
 	int rc;
-	int delay = *(int *) arg;
+	int delay = *(int *)arg;
 
-	for (i = 0; i < NR_ITERATIONS; i++) {
+	for (i = 0; i < NR_ITERATIONS; i++)
+	{
 		/* TODO - lock mutex */
-
+		pthread_mutex_lock(&mutex);
 		/* TODO - if common area is empty
 		 *		then wait until the common area is not empty
 		 */
-
+		while (is_buffer_empty(&common_area))
+		{
+			pthread_cond_wait(&buffer_not_empty, &mutex);
+		}
 		/* TODO - remove item from common area */
-
+		item_consumed = remove_item(&common_area);
 		printf("\t\tConsumed item %d\n", item_consumed);
 
+		if (!is_buffer_full(&common_area))
+		{
+			pthread_cond_signal(&buffer_not_full);
+		}
 		/* TODO - if we have BUFFER_SIZE - 1 elements in common area
 		 *		then signal that the buffer is not full
 		 */
-
+		pthread_mutex_unlock(&mutex);
 		/* TODO - unlock mutex */
 
 		if (delay == RAND_DELAY)
