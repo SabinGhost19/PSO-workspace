@@ -32,7 +32,7 @@ static pthread_key_t thread_log_key;
 /* scrie message in fisierul de log al threadului curent */
 void write_to_thread_log(const char *message)
 {
-	FILE *thread_log = (FILE *) pthread_getspecific(thread_log_key);
+	FILE *thread_log = (FILE *)pthread_getspecific(thread_log_key);
 
 	fprintf(thread_log, "%s\n", message);
 }
@@ -40,7 +40,7 @@ void write_to_thread_log(const char *message)
 /* inchide fisierul de log */
 void close_thread_log(void *thread_log)
 {
-	fclose((FILE *) thread_log);
+	fclose((FILE *)thread_log);
 }
 
 /* functia care va fi executata de thread-uri */
@@ -50,7 +50,7 @@ void *thread_function(void *args)
 	FILE *thread_log;
 
 	/* genereaza filename pentru fisierul de log */
-	sprintf(thread_log_filename, "thread%d.log", (int) pthread_self());
+	sprintf(thread_log_filename, "thread%d.log", (int)pthread_self());
 
 	/* deschide fisierul de log */
 	thread_log = fopen(thread_log_filename, "w");
