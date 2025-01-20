@@ -10,7 +10,7 @@
       "request": "launch",
       //"program": "${workspaceFolder}/Lab7_threads/practice/PLANNER/planner",
       //"program": "${workspaceFolder}/Lab7_threads/lin_Exercises/4-pfgrep/parallel_fgrep",
-      "program": "${workspaceFolder}/practice/all_ppractice/specific",
+      "program": "${workspaceFolder}/lab14_DAN_AVRAMISSS/server",
 
       "args": [],
       "stopAtEntry": false,

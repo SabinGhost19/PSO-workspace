@@ -9,7 +9,12 @@
     "cstdlib": "c",
     "stdlib.h": "c",
     "unistd.h": "c",
-    "utils.h": "c"
+    "utils.h": "c",
+    "fcntl.h": "c",
+    "new": "c",
+    "string.h": "c",
+    "limits": "c",
+    "semaphore.h": "c"
   },
   "C_Cpp.errorSquiggles": "disabled"
 }

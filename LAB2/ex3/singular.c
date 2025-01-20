@@ -18,11 +18,12 @@ static void do_stuff(void)
 static void check_lock(void)
 {
 	int rc;
-
+	// FIXME:FIXXXX
 	/* TODO - Open LOCK_FILE file */
 	/* fdlock = open(...) */
 	fdlock = open(LOCK_FILE, O_CREAT | O_EXCL | O_WRONLY, 0666);
 
+	// README: SREADSDA
 	if (flock(fdlock, LOCK_EX) < 0)
 	{
 		perror("there is another instance running");

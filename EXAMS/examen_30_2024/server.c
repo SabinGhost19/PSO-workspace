@@ -9,6 +9,7 @@
 
 int main()
 {
+
     // Creăm un obiect de memorie partajată
     int shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
     if (shm_fd == -1)
@@ -24,24 +25,32 @@ int main()
         return 1;
     }
 
+    int fd = open("file.txt", O_RDWR);
+
     // Mapăm memoria în spațiul virtual al procesului
-    char *data = mmap(NULL, sizeof(char) * 1024, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    char *data[10];
+
+    char *data[0] = mmap(NULL, sizeof(char) * 1024, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
     if (data == MAP_FAILED)
     {
         perror("mmap");
         return 1;
     }
 
+    ((int *)data)[0] = 1;
+    data[4] = 'S';
     // Scriem în memoria partajată
-    snprintf(data, 1024, "Acesta este un ată!");
+    // snprintf(data, 1024, "Acesta este un ată!");
 
-    printf("Date scrise in memoria partajata: %s\n", data);
+    // printf("Date scrise in memoria partajata: %s\n", data);
 
     // Dezmapăm și închidem
     if (munmap(data, sizeof(char) * 1024) == -1)
     {
         perror("munmap");
     }
+    close(fd);
     close(shm_fd);
 
     // stergere memorie partajata

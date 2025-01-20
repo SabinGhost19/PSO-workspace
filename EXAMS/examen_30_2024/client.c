@@ -61,9 +61,9 @@ int main()
         perror("shm_open");
         return 1;
     }
-
+    int fd = open("file.txt", O_RDWR);
     // Mapăm memoria în spațiul virtual al procesului
-    char *data = mmap(NULL, sizeof(char) * 1024, PROT_READ, MAP_SHARED, shm_fd, 0);
+    char *data = mmap(NULL, sizeof(char) * 1024, PROT_READ, MAP_SHARED, fd, 0);
     if (data == MAP_FAILED)
     {
         perror("mmap");
@@ -71,7 +71,8 @@ int main()
     }
 
     // Citim din memoria partajată
-    printf("Date citite din memoria partajată: %s\n", data);
+    printf("Date citite din memoria partajată: %d\n", ((int *)data)[0]);
+    printf("Date citite din memoria partajată: %c\n", ((char *)data)[4]);
 
     // Dezmapăm și închidem
     if (munmap(data, sizeof(char) * 1024) == -1)
