@@ -1,10 +1,7 @@
-CFLAGS := -O0 -Wall -lpthread
-all: client server
+CFLAGS := -O0 -Wall -lpthread -lssl -lcrypto
+all: server
 
 server: server.c
 	gcc -o server $(CFLAGS) server.c
-
-client: client.c 
-	gcc -o client $(CFLAGS) client.c
 clean:
-	rm client server
+	rm  server
