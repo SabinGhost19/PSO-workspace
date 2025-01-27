@@ -1,0 +1,3 @@
+1,Laptop Asus,13000,5
+2,Tastatură Keychron K8,600,4
+3,Aragaz,2000,1

@@ -1,57 +1,72 @@
+#define _GNU_SOURCE
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <stdlib.h>
-
+#include <string.h>
 #define SHM_NAME "/my_shared_memory"
 
+void parsing(char *buffer)
+{
+    char *end = NULL;
+    char *start = strtok(buffer, "\n");
+    printf("%s\n", start);
+    start = strtok(NULL, "\n");
+    printf("%s\n", start);
+    start = strtok(NULL, "\n");
+    printf("%s\n", start);
+    printf("\n\n%s\n", buffer + 6);
+}
 int main()
 {
 
     // Creăm un obiect de memorie partajată
-    int shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
-    if (shm_fd == -1)
-    {
-        perror("shm_open");
-        return 1;
-    }
+    // int shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
+    // if (shm_fd == -1)
+    // {
+    //     perror("shm_open");
+    //     return 1;
+    // }
 
-    // Setăm dimensiunea zonei de memorie partajată
-    if (ftruncate(shm_fd, sizeof(char) * 1024) == -1)
-    {
-        perror("ftruncate");
-        return 1;
-    }
+    // // Setăm dimensiunea zonei de memorie partajată
+    // if (ftruncate(shm_fd, sizeof(char) * 1024) == -1)
+    // {
+    //     perror("ftruncate");
+    //     return 1;
+    // }
 
+    char buffer[1024];
     int fd = open("file.txt", O_RDWR);
+    read(fd, &buffer, 1024 * sizeof(char));
+    parsing(buffer);
 
     // Mapăm memoria în spațiul virtual al procesului
-    char *data[10];
+    // char *data[10];
 
-    char *data[0] = mmap(NULL, sizeof(char) * 1024, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    // char *data[0] = mmap(NULL, sizeof(char) * 1024, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
-    if (data == MAP_FAILED)
-    {
-        perror("mmap");
-        return 1;
-    }
+    // if (data == MAP_FAILED)
+    // {
+    //     perror("mmap");
+    //     return 1;
+    // }
 
-    ((int *)data)[0] = 1;
-    data[4] = 'S';
-    // Scriem în memoria partajată
-    // snprintf(data, 1024, "Acesta este un ată!");
+    // ((int *)data)[0] = 1;
+    // data[4] = 'S';
+    // // Scriem în memoria partajată
+    // // snprintf(data, 1024, "Acesta este un ată!");
 
-    // printf("Date scrise in memoria partajata: %s\n", data);
+    // // printf("Date scrise in memoria partajata: %s\n", data);
 
-    // Dezmapăm și închidem
-    if (munmap(data, sizeof(char) * 1024) == -1)
-    {
-        perror("munmap");
-    }
-    close(fd);
-    close(shm_fd);
+    // // Dezmapăm și închidem
+    // if (munmap(data, sizeof(char) * 1024) == -1)
+    // {
+    //     perror("munmap");
+    // }
+    // close(fd);
+    // close(shm_fd);
 
     // stergere memorie partajata
     //  if (shm_unlink(SHM_NAME) == -1)

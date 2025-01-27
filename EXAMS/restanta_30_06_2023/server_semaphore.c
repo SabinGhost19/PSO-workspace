@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE 600
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -5,8 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <semaphore.h>
+#include <signal.h>
 
-#define MAX_THREADS 4
+#define MAX_THREADS 3
 #define MAX_TASKS 5
 #define FILENAME_DIM 30
 typedef struct Task
@@ -15,64 +18,197 @@ typedef struct Task
     char filename[FILENAME_DIM]
 } Task;
 Task task_vector[MAX_TASKS];
-
+long long global_sum = 0;
 int vector_COUNT__ = 0;
 void init(int argc);
 void read_files(int argc, char *argv[]);
 void submit_Task(Task new_task);
+volatile sig_atomic_t stop_threads = 0;
 pthread_mutex_t _task_mutex_ = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t _task_cond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t __sum_mutex_ = PTHREAD_MUTEX_INITIALIZER;
+
+sem_t file_to_write_available;
+sem_t task_to_execute_available;
 
 void execute_the_task(Task task_to_execute)
 {
     printf("EXECUTING THE TASk: %s\n", task_to_execute.filename);
+    // sleep(1);
+    int fd = open(task_to_execute.filename, O_RDONLY);
+    if (fd == -1)
+    {
+        perror("error open file");
+        exit(EXIT_FAILURE);
+    }
+    char buffer[1024];
+    int read_bytes = read(fd, buffer, 1024 * sizeof(char));
+    printf("%s__>>> %s\n", task_to_execute.filename, buffer);
+
+    pthread_mutex_lock(&__sum_mutex_);
+    char *start = strtok(buffer, "\n");
+    while (start != NULL)
+    {
+        int number = atoi(start);
+
+        task_to_execute.sum += number;
+        printf(".....Number %s: %d.......\n", task_to_execute.filename, number);
+        start = strtok(NULL, "\n");
+    }
+    pthread_mutex_unlock(&__sum_mutex_);
+
+    printf("Read bytes:%s from %s\n", buffer, task_to_execute.filename);
+    printf("The sum is : %d......\n", task_to_execute.sum);
+
+    pthread_mutex_lock(&__sum_mutex_);
+    global_sum += task_to_execute.sum;
+    printf("GLOBAL SUM : %lld......\n", global_sum);
+    pthread_mutex_unlock(&__sum_mutex_);
+    printf("PID Is %d\n", getpid());
+}
+int check_if_vector_is_empty()
+{
+    if (vector_COUNT__ == 0)
+    {
+        return 0;
+    }
+    return 1;
 }
 void *starting_routine(void *args)
 {
-    while (1)
+    while (!stop_threads)
     {
 
         Task taken_task;
-        pthread_mutex_lock(&_task_mutex_);
-        while (vector_COUNT__ == 0)
+        if (stop_threads)
         {
-            pthread_cond_wait(&_task_cond, &_task_mutex_);
+            break;
         }
+        sem_wait(&task_to_execute_available);
+
+        pthread_mutex_lock(&_task_mutex_);
 
         taken_task = task_vector[0];
+
         for (int i = 0; i < vector_COUNT__; i++)
         {
             task_vector[i] = task_vector[i + 1];
         }
         vector_COUNT__--;
+        // if (check_if_vector_is_empty() == 0)
+        // {
+        //     // timer
+        //     // TODO:TIMER
+        // }
         pthread_mutex_unlock(&_task_mutex_);
+        sem_post(&file_to_write_available);
         execute_the_task(taken_task);
     }
+    return NULL;
 }
-int main(int argc, char *argv[])
+
+void *process_task(void *args)
 {
-    init(argc);
-    pthread_t tid[MAX_THREADS];
-    read_files(argc, argv);
-    for (int i = 0; i < MAX_THREADS; i++)
+    char *buffer = (char *)args;
+    char *start = strtok(buffer, "\n");
+
+    while (start != NULL)
     {
-        if (pthread_create(&tid[i], NULL, &starting_routine, NULL) != 0)
-        {
-            perror("Error threads create");
-            exit(-1);
-        }
+        int number;
+
+        // Protejează accesul concurent la variabila `number` cu un mutex
+        // pthread_mutex_lock(&_task_mutex_);
+
+        number = atoi(start); // Apelăm atoi într-un mod thread-safe
+
+        printf("Number: %d\n", number);
+
+        // pthread_mutex_unlock(&_task_mutex_);
+        //  Continuă cu următorul token
+        start = strtok(NULL, "\n");
     }
 
-    for (int i = 0; i < MAX_THREADS; i++)
-    {
-        if (pthread_join(tid[i], NULL) != 0)
-        {
-            perror("Error threads join");
-            exit(-1);
-        }
-    }
+    return NULL;
+}
+
+int main()
+{
+    pthread_t thread1, thread2, thread3, thread4, thread5, thread6;
+    char data[] = "10234567\n20\n30\n40\n50\n";
+
+    // Crearea threadurilor care vor procesa aceeași listă de taskuri
+    pthread_create(&thread1, NULL, process_task, (void *)data);
+    pthread_create(&thread2, NULL, process_task, (void *)data);
+    pthread_create(&thread3, NULL, process_task, (void *)data);
+    pthread_create(&thread4, NULL, process_task, (void *)data);
+    pthread_create(&thread5, NULL, process_task, (void *)data);
+    pthread_create(&thread6, NULL, process_task, (void *)data);
+
+    pthread_join(thread1, NULL);
+    pthread_join(thread2, NULL);
+    pthread_join(thread3, NULL);
+    pthread_join(thread4, NULL);
+    pthread_join(thread5, NULL);
+    pthread_join(thread6, NULL);
 
     return 0;
+}
+// int main(int argc, char *argv[])
+// {
+
+//     // int n = 0, sum = 0;
+//     // printf("Insert the number/above limit:\n");
+//     // scanf("%d", &n);
+
+//     // // calcul suma:
+//     // for (int i = 0; i <= n; i += 2)
+//     // {
+//     //     sum += i;
+//     // }
+//     // printf("Suma este: %d\n", sum);
+//     init(argc);
+
+//     sem_init(&file_to_write_available, 0, MAX_TASKS);
+//     sem_init(&task_to_execute_available, 0, 0);
+
+//     pthread_t tid[MAX_THREADS];
+
+//     for (int i = 0; i < MAX_THREADS; i++)
+//     {
+//         if (pthread_create(&tid[i], NULL, &starting_routine, NULL) != 0)
+//         {
+//             perror("Error threads create");
+//             exit(-1);
+//         }
+//     }
+//     read_files(argc, argv);
+
+//     for (int i = 0; i < MAX_THREADS; i++)
+//     {
+//         if (pthread_join(tid[i], NULL) != 0)
+//         {
+//             perror("Error threads join");
+//             exit(-1);
+//         }
+//     }
+//     sem_destroy(&file_to_write_available);
+//     sem_destroy(&task_to_execute_available);
+
+//     return 0;
+// }
+void populate_vector(char *buffer)
+{
+    char *start = strtok(buffer, "\n");
+    while (start != NULL)
+    {
+        sem_wait(&file_to_write_available);
+        Task new_task4;
+        new_task4.sum = 0;
+        strcpy(new_task4.filename, start);
+        printf("Filename found: %s\n", new_task4.filename);
+        submit_Task(new_task4);
+        start = strtok(NULL, "\n");
+        sem_post(&task_to_execute_available);
+    }
 }
 void read_files(int argc, char *argv[])
 {
@@ -103,17 +239,7 @@ void read_files(int argc, char *argv[])
     printf("Bytes Read: %d\n", bytes_read);
     printf("Data read from file: %s\n", buffer);
 
-    char *start = strtok(buffer, "\n");
-    while (start != NULL)
-    {
-        Task new_task4;
-        new_task4.sum = 0;
-        strcpy(new_task4.filename, start);
-        printf("Filename found: %s\n", new_task4.filename);
-        submit_Task(new_task4);
-        start = strtok(NULL, "\n");
-    }
-
+    populate_vector(buffer);
     close(fd);
 }
 
@@ -123,17 +249,171 @@ void submit_Task(Task new_task)
     task_vector[vector_COUNT__] = new_task;
     vector_COUNT__++;
     pthread_mutex_unlock(&_task_mutex_);
-    pthread_cond_signal(&_task_cond);
 }
-
+void signal_handler(int sig)
+{
+    printf("Received signal %d. Exiting...\n", sig);
+    stop_threads = 1;
+    sem_post(&task_to_execute_available);
+    sem_destroy(&file_to_write_available);
+    sem_destroy(&task_to_execute_available);
+    // exit(0);
+}
 void init(int argc)
 {
+    struct sigaction sa;
+    sa.sa_handler = signal_handler;
+    sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
+
+    if (sigaction(SIGUSR2, &sa, NULL) == -1)
+    {
+        perror("sigaction");
+        exit(EXIT_FAILURE);
+    }
+
     if (argc < 2)
     {
         perror("Argument not given");
         exit(-1);
     }
 }
+
+// #define _XOPEN_SOURCE 600
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <unistd.h>
+// #include <pthread.h>
+// #include <semaphore.h>
+// #include <time.h>
+// #include <signal.h>
+// #include <string.h>
+
+// #define MAX_TICKETS 5
+// #define CLIENTS 7
+
+// typedef struct
+// {
+//     int tickets[MAX_TICKETS];
+//     int start;
+//     int end;
+//     int count;
+// } TicketList;
+
+// TicketList ticket_list = {.start = 0, .end = 0};
+// pthread_mutex_t list_mutex = PTHREAD_MUTEX_INITIALIZER;
+// sem_t space_available;
+// sem_t tickets_available;
+
+// void *client_routine(void *args)
+// {
+//     int delay = rand() % 1000001;
+//     usleep(delay);
+//     printf("a fost creat threadul cu idul: %ld\n", pthread_self());
+
+//     sem_wait(&tickets_available);
+//     pthread_mutex_lock(&list_mutex);
+
+//     int ticket = ticket_list.tickets[ticket_list.start];
+//     ticket_list.start++;
+//     ticket_list.start = ticket_list.start % MAX_TICKETS;
+//     ticket_list.count--;
+//     printf("== BILET PRIMIT - TOTAL RAMASE: %d\n", ticket_list.count);
+
+//     pthread_mutex_unlock(&list_mutex);
+//     sem_post(&space_available);
+// }
+
+// int is_unic(int value)
+// {
+//     for (int i = ticket_list.start; i < ticket_list.end; i++)
+//     {
+//         if (ticket_list.tickets[i] == value)
+//             return 0;
+//     }
+
+//     return 1;
+// }
+
+// int generate_ticket()
+// {
+//     int value = 1000000 + rand() % 1000001;
+//     while (!is_unic(value))
+//     {
+//         value = 1000000 + rand() + 1000001;
+//     }
+
+//     return value;
+// }
+
+// void handle_sigusr2(int signum)
+// {
+//     pthread_mutex_lock(&list_mutex);
+//     printf("-=-=-BILETE DISPONIBILE: %d\n", ticket_list.count);
+//     pthread_mutex_unlock(&list_mutex);
+// }
+
+// void child_process(pid_t parent_pid)
+// {
+//     while (1)
+//     {
+//         sleep(3);
+//         kill(parent_pid, SIGUSR2);
+//     }
+// }
+
+// int main(int argc, char *argv[])
+// {
+//     srand(time(NULL));
+
+//     struct sigaction sa_usr2;
+//     memset(&sa_usr2, 0, sizeof(sa_usr2));
+//     sa_usr2.sa_handler = handle_sigusr2;
+//     sigaction(SIGUSR2, &sa_usr2, NULL);
+
+//     sem_init(&space_available, 0, MAX_TICKETS);
+//     sem_init(&tickets_available, 0, 0);
+
+//     pid_t pid = fork();
+//     if (pid == 0)
+//     {
+
+//         child_process(getppid());
+//         exit(EXIT_SUCCESS);
+//     }
+
+//     pthread_t threads_ids[CLIENTS];
+//     for (int i = 0; i < CLIENTS; i++)
+//     {
+//         pthread_create(&threads_ids[i], NULL, client_routine, NULL);
+//     }
+
+//     // generare bilete
+//     while (1)
+//     {
+//         sleep(1);
+//         sem_wait(&space_available);
+//         pthread_mutex_lock(&list_mutex);
+
+//         int new_ticket = generate_ticket();
+//         ticket_list.tickets[ticket_list.end] = new_ticket;
+//         ticket_list.end++;
+//         ticket_list.end = ticket_list.end % MAX_TICKETS;
+//         ticket_list.count++;
+
+//         printf("BILET ADAUGAT - NR TOTAL: %d\n", ticket_list.count);
+
+//         pthread_mutex_unlock(&list_mutex);
+//         sem_post(&tickets_available);
+//     }
+
+//     for (int i = 0; i < CLIENTS; i++)
+//     {
+//         pthread_join(threads_ids[i], NULL);
+//     }
+
+//     return 0;
+// }
 
 // #include <stdio.h>
 // #include <unistd.h>

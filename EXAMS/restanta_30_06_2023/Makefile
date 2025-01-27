@@ -1,6 +1,5 @@
-CFLAGS := -O0 -Wall -lpthread
+CFLAGS := -g -O0 -Wall -lpthread
 all: server server_semaphore
-
 server: server.c
 	gcc -o server $(CFLAGS) server.c
 
