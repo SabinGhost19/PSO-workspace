@@ -24,7 +24,6 @@
 #define STATUS_FINISHED 1
 #define SEED_INIT 123456
 
-
 int id_seed = SEED_INIT;
 
 typedef struct job
@@ -74,7 +73,8 @@ void run(int id, char *command)
   int i = 0;
 
   // Am aduagat si suport pentru scripturi
-  if (strcmp(command + strlen(command) - 3, ".sh") == 0) {
+  if (strcmp(command + strlen(command) - 3, ".sh") == 0)
+  {
     args[0] = "/bin/bash";
     command = args[0];
     i++;
@@ -95,7 +95,6 @@ void run(int id, char *command)
     sprintf(filename_err, "%d.stderr", id);
     int out = open(filename_out, O_CREAT | O_WRONLY, 0664);
     int err = open(filename_err, O_CREAT | O_WRONLY, 0664);
-
 
     dup2(out, STDOUT_FILENO);
     dup2(err, STDERR_FILENO);
@@ -126,25 +125,26 @@ void *thread_handle(void *params)
 {
   int client = *((int *)params);
   char buffer[1024];
-  
+
   recv(client, buffer, 1024, 0);
   printf("%s\n", buffer);
-  
+
   char *command, *args = NULL;
 
   // am adaugat aici verificarea ca am un spatiu, altfel nu am parametru
-  char* first_space = strchr(buffer, ' ');
-  if (first_space != NULL) {
+  char *first_space = strchr(buffer, ' ');
+  if (first_space != NULL)
+  {
     args = strchr(buffer, ' ') + 1;
     buffer[strchr(buffer, ' ') - buffer] = '\0';
-  } 
+  }
   command = buffer;
 
-  if (strcmp("run", command)==0)
+  if (strcmp("run", command) == 0)
   {
     pthread_mutex_lock(&id_seed_mutex);
     int id = id_seed++;
-    pthread_mutex_unlock(&id_seed_mutex); 
+    pthread_mutex_unlock(&id_seed_mutex);
 
     pthread_mutex_lock(&job_index_mutex);
     if (running_jobs_nr >= 5)
@@ -168,7 +168,7 @@ void *thread_handle(void *params)
     }
   }
 
-  if (strcmp("get_status", command)==0)
+  if (strcmp("get_status", command) == 0)
   {
     int id = atoi(args);
     pthread_mutex_lock(&jobs_mutex);
@@ -188,7 +188,7 @@ void *thread_handle(void *params)
     }
   }
 
-  if (strcmp("kill_job", command)==0)
+  if (strcmp("kill_job", command) == 0)
   {
     int id = atoi(args);
     pthread_mutex_lock(&jobs_mutex);
@@ -202,7 +202,7 @@ void *thread_handle(void *params)
     write(client, &error, 1);
   }
 
-  if (strcmp("get_stdout", command)==0)
+  if (strcmp("get_stdout", command) == 0)
   {
     struct stat file_stat;
     int id = atoi(args);
@@ -229,7 +229,7 @@ void *thread_handle(void *params)
     }
   }
 
-  if (strcmp("get_stderr", command)==0)
+  if (strcmp("get_stderr", command) == 0)
   {
     struct stat file_stat;
     int id = atoi(args);
@@ -256,7 +256,7 @@ void *thread_handle(void *params)
     }
   }
 
-  if (strcmp("get_jobs", command)==0)
+  if (strcmp("get_jobs", command) == 0)
   {
     int nr;
     pthread_mutex_lock(&id_seed_mutex);
@@ -279,8 +279,8 @@ void *thread_handle(void *params)
     }
     pthread_mutex_unlock(&jobs_mutex);
   }
-  
-  if (strcmp("istoric", command)==0)
+
+  if (strcmp("istoric", command) == 0)
   {
     int nr;
     pthread_mutex_lock(&id_seed_mutex);
@@ -391,7 +391,6 @@ int main(int argc, char **argv)
   pthread_t tid[500];
   int param[500];
 
-
   pthread_t w_tid;
   pthread_create(&w_tid, NULL, thread_handle_wait, NULL);
 
@@ -410,20 +409,21 @@ int main(int argc, char **argv)
 
     FD_ZERO(&rfds);
     FD_SET(socket_desc, &rfds);
-    retval = select(socket_desc + 1 , &rfds, NULL, NULL, &tv);
+    retval = select(socket_desc + 1, &rfds, NULL, NULL, &tv);
     if (retval == -1)
       perror("select()");
-    else if (retval) {
+    else if (retval)
+    {
       printf("accept\n");
-        param[current] = accept(socket_desc, (struct sockaddr *)&client_addr, &client_size);
-        
-        // sa nu poata fi mostenit de copii (vezi si accept4())
-        fcntl(param[current], F_SETFD, fcntl(param[current], F_GETFD) | FD_CLOEXEC);
+      param[current] = accept(socket_desc, (struct sockaddr *)&client_addr, &client_size);
 
-        pthread_create(&tid[current], NULL, thread_handle, &param[current]);
-        pthread_mutex_lock(&finish_mutex);
-        current++;
-      }
+      // sa nu poata fi mostenit de copii (vezi si accept4())
+      fcntl(param[current], F_SETFD, fcntl(param[current], F_GETFD) | FD_CLOEXEC);
+
+      pthread_create(&tid[current], NULL, thread_handle, &param[current]);
+      pthread_mutex_lock(&finish_mutex);
+      current++;
+    }
   }
 
   for (int i = 0; i < current; i++)

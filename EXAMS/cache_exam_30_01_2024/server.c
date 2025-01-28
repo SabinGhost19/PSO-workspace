@@ -87,6 +87,7 @@ int verify_hitting_type(CacheSlot *new_slot)
     printf("LRUUU\n");
 
     CacheSlot *entrance = (CacheSlot *)main_en;
+
     for (int i = 0; i < 10; i++)
     {
         if (strcmp(entrance[i].file_name, new_slot->file_name) == 0)
