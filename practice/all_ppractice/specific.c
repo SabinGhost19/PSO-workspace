@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
 
 #define MAX_THREADS 5
 #define CHAR_SIZE 10
@@ -29,7 +32,7 @@ void *thread_routine(void *args)
     printf("Thread %d alloc...\n", thread_id);
 
     const char *new_alloc_char = (char *)malloc(sizeof(char) * CHAR_SIZE);
-
+    strcpy(new_alloc_char, "OOIIOOIIOO");
     pthread_setspecific(thread_key, new_alloc_char);
 
     printf("Thread %d a setat specific data: %s\n", thread_id, new_alloc_char);
@@ -43,9 +46,17 @@ int main(int argc, char *argv[])
     pthread_key_create(&thread_key, clean_up_function);
 
     pthread_t vec_of_threads[MAX_THREADS];
+    int values[MAX_THREADS] = {1, 2, 3, 4, 5};
+    // or
     for (int i = 0; i < MAX_THREADS; i++)
     {
-        if (pthread_create(&vec_of_threads[i], NULL, thread_routine, (int *)&i))
+        values[i] = i;
+    }
+
+    for (int i = 0; i < MAX_THREADS; i++)
+    {
+
+        if (pthread_create(&vec_of_threads[i], NULL, thread_routine, (int *)&values[i]))
         {
             perror("Eroare la crearea thread-ului");
             exit(EXIT_FAILURE);
