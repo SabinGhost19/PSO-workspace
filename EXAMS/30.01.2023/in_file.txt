@@ -1,0 +1,6 @@
+generate abcd file2.txt
+checksum file_in file_out
+checksum file2.txt file_in
+checksum file2.txt file_out
+checksum file2.txt file_in
+checksum file2.txt file_out
