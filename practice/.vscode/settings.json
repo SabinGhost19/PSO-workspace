@@ -1,5 +1,10 @@
 {
   "files.associations": {
-    "semaphore.h": "c"
+    "semaphore.h": "c",
+    "pthread.h": "c",
+    "stdio.h": "c",
+    "stdlib.h": "c",
+    "time.h": "c",
+    "unistd.h": "c"
   }
 }
